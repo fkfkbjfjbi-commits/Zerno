@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Зерно — симулятор кофейного киоска</title>
+<style>
+:root{--bg:#dce6ec;--card:#f6f9fb;--ink:#1d2b33;--mut:#5d6f79;--green:#1f5a47;--gold:#e9a62b;--red:#c8442f;--board:#26332f;--chalk:#eef3ee;--line:#c3d1da;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15202a;--card:#1f2e3a;--ink:#e8eef2;--mut:#98a9b4;--green:#4fb08c;--gold:#f0b53f;--red:#ee7a64;--line:#334654;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15202a;--card:#1f2e3a;--ink:#e8eef2;--mut:#98a9b4;--green:#4fb08c;--gold:#f0b53f;--red:#ee7a64;--line:#334654;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:480px;margin:0 auto;padding:14px 14px 40px}
+header{display:flex;justify-content:space-between;align-items:baseline;font-size:17px}
+.cash{font-weight:800;font-size:22px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0 2px}
+.bar i{display:block;height:100%;background:var(--green);transition:width .4s}
+.rep{display:flex;justify-content:space-between;font-size:14px;color:var(--mut);margin-top:10px}
+.scene{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin:14px 0;padding:16px 12px 0;border-radius:14px;background:linear-gradient(#bcd0dc,var(--bg));overflow:hidden;min-height:150px}
+.kiosk{width:150px}
+.sign{background:var(--green);color:#fff;text-align:center;font-weight:800;letter-spacing:.12em;padding:4px 0;border-radius:6px 6px 0 0;font-size:15px}
+.awn{height:20px;background:repeating-linear-gradient(90deg,var(--green) 0 18px,#fff 18px 36px);border-radius:0 0 8px 8px}
+.counter{height:84px;background:#d9b878;border:2px solid #8a6b36;border-top:0;position:relative}
+.man{position:absolute;left:18px;top:6px;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #1d2b33}
+.mb{position:absolute;left:12px;top:30px;width:34px;height:54px;background:var(--gold);border-radius:12px 12px 0 0}
+.mach{position:absolute;right:14px;top:34px;width:46px;height:34px;background:#8d9aa3;border-radius:4px}
+.board{width:118px;min-height:92px;background:var(--board);color:var(--chalk);border:4px solid #8a6b36;border-bottom:0;padding:6px;font-size:15px;letter-spacing:.06em;word-break:break-all}
+.board s{text-decoration-thickness:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.card p{margin:4px 0}
+.mut{color:var(--mut);font-size:14px}
+.err{color:var(--red);font-weight:600}
+.g{color:var(--green)}
+.w{margin:0;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--green);margin:8px 0}
+.row{display:flex;gap:8px;margin-top:6px}
+button{font:inherit;cursor:pointer}
+button.sec{flex:1;padding:11px 10px;border-radius:10px;border:2px solid var(--green);background:transparent;color:var(--ink);font-weight:600;text-align:left}
+.row button.sec{text-align:center}
+button.sec.on{background:var(--green);color:#fff}
+button.sec:disabled{opacity:.4;cursor:default}
+.ev button.sec{display:block;width:100%;margin-top:8px}
+.ev{border-color:var(--red);border-width:2px}
+button.go{width:100%;padding:15px;border:0;border-radius:12px;background:var(--gold);color:#1d2b33;font-weight:800;font-size:18px;margin-top:6px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.end{text-align:center;padding:50px 0 20px}
+.end h1{font-size:34px;margin:0 0 12px}
+.vt{display:block;margin:0 0 4px auto;padding:4px 10px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:13px}
+.scene{position:relative}
+.cu{position:absolute;bottom:0;left:6px;width:16px;height:38px;border-radius:8px 8px 0 0;background:#6b8795;opacity:0;animation:walk 2.4s ease-out forwards}
+.cu:nth-of-type(2n){left:-6px;background:#b08a5b}
+.cu::before{content:"";position:absolute;top:-14px;left:1px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #1d2b33}
+@keyframes walk{0%{transform:translateX(0);opacity:0}15%{opacity:1}100%{transform:translateX(26px);opacity:1}}
+.stm{position:absolute;right:30px;top:28px;width:8px;height:8px;border-radius:50%;background:#fff;opacity:0}
+.stm.s2{right:40px}
+.play .stm{animation:steam 1.6s ease-out infinite}
+.play .s2{animation-delay:.7s}
+@keyframes steam{0%{transform:translateY(0);opacity:.8}100%{transform:translateY(-26px) scale(2);opacity:0}}
+.coin{position:absolute;top:10px;left:50%;font-weight:800;color:var(--green);background:var(--card);padding:2px 10px;border-radius:12px;animation:up 1.6s ease-out forwards}
+@keyframes up{0%{transform:translate(-50%,20px);opacity:0}30%{opacity:1}100%{transform:translate(-50%,-6px);opacity:1}}
+.shake{animation:shake .5s 2}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.ev{animation:pop .35s}
+@keyframes pop{from{transform:scale(.94);opacity:0}}
+.news{border-left:5px solid var(--gold)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}.cu,.stm,.coin,.shake,.ev{animation:none!important}.cu,.coin{opacity:1}}
+.scene{min-height:190px;padding:30px 8px 0}
+.mn{width:34px;height:68px;overflow:visible}
+.win{height:62px;background:#e8f1f5;position:relative;border:2px solid #8a6b36;border-top:0;border-bottom:0;display:flex;justify-content:center;align-items:flex-end}
+.win .mn{width:30px;height:60px}
+.cnt{height:26px;background:#d9b878;border:2px solid #8a6b36}
+.mach2{position:absolute;right:8px;bottom:0;width:30px;height:24px;background:#8d9aa3;border-radius:4px 4px 0 0}
+.win .stm{right:14px;top:16px}
+.win .stm.s2{right:24px}
+.cs{position:absolute;bottom:0;left:-30px;opacity:0;animation:walk2 2.6s ease-out forwards}
+.cs .mn{width:26px;height:52px}
+@keyframes walk2{0%{transform:translateX(0);opacity:0}12%{opacity:1}75%{transform:translateX(64px);opacity:1}100%{transform:translateX(70px);opacity:0}}
+.mn .bd{transform-box:fill-box;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-2px)}}
+.cs .lg{transform-box:fill-box;transform-origin:top;animation:leg .35s infinite alternate}
+.cs .l2{animation-direction:alternate-reverse}
+@keyframes leg{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+.vis{position:absolute;right:10px;bottom:0;animation:enter .7s ease-out}
+.vis .mn{width:38px;height:76px}
+@keyframes enter{from{transform:translateX(70px);opacity:0}}
+.bub{position:absolute;top:8px;left:10px;right:10px;background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:6px 10px;font-size:13px;line-height:1.3;animation:pop .35s}
+@media (prefers-reduced-motion:reduce){.cs,.vis,.bub,.mn .bd,.cs .lg{animation:none!important}.cs{opacity:1}}
+.vt{display:inline-block;margin:0 0 4px 4px}
+h2{margin:6px 0}
+html[data-q="0"] *{animation:none!important;transition:none!important}
+html[data-q="0"] .cs{display:none}
+html[data-q="2"] .scene,html[data-q="3"] .scene{background:linear-gradient(#8fb9d3,#e9f1f5 72%,#b5c8a4 72%)}
+html[data-q="2"] .mn,html[data-q="3"] .mn{filter:drop-shadow(0 3px 2px rgba(0,0,0,.28))}
+html[data-q="2"] .kiosk,html[data-q="3"] .kiosk{filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
+html[data-q="3"] .scene::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 0,rgba(255,236,170,.75),transparent 55%);pointer-events:none}
+html[data-q="3"] .scene::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 44px rgba(0,0,0,.3);pointer-events:none}
+html[data-d="1"] .scene{overflow:visible;transform-style:preserve-3d;transform:perspective(700px) rotateX(9deg);animation:sway 7s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:perspective(700px) rotateX(9deg) rotateY(-7deg)}50%{transform:perspective(700px) rotateX(9deg) rotateY(7deg)}}
+html[data-d="1"] .kiosk{transform:translateZ(40px)}
+.opt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.opt.on{border-color:var(--green);box-shadow:inset 0 0 0 2px var(--green)}
+.opt span{float:right;font-weight:700}
+.opt small{display:block;color:var(--mut);margin-top:2px;font-size:13px}
+button.go:disabled{opacity:.4;cursor:default}
+#aiq{flex:1;min-width:0;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.ailog{max-height:170px;overflow:auto;font-size:14px;margin:6px 0}
+.ailog p{margin:4px 0}
+.ailog .me{color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap"><div style="text-align:right"><button class="vt" onclick="A('menu')">Меню</button> <button class="vt" id="vt" onclick="A('voice')"></button></div><div id="app"></div><div id="ai"></div></div>
+<script>
+var W=[{n:"Солнечно",k:1.15,p:.3},{n:"Пасмурно",k:1,p:.4},{n:"Дождь",k:.65,p:.3}];
+var S;
+function fmt(n){return Math.round(n).toLocaleString("ru-RU").replace(/\u00a0|\u202f/g," ")+" ₸"}
+function init(){S={day:1,cash:900000,rep:11,stock:20,price:1500,ad:false,pend:false,ev:false,log:null,msg:"",phase:"plan"};newDay();render()}
+function newDay(){var r=Math.random(),a=0;for(var i=0;i<W.length;i++){a+=W[i].p;if(r<a){S.w=W[i];break}}S.ad=false;S.msg="";S.phase="plan"}
+function dem(){return 120*S.rep/100*Math.pow(1500/S.price,1.6)*S.w.k*(S.ad?1.3:1)}
+function play(){
+  var cost=0;if(S.ad&&S.cash>=40000){cost=40000;S.cash-=cost}
+  var want=Math.round(dem()*(0.85+Math.random()*0.3));
+  var served=Math.min(want,S.stock),lost=want-served,rev=served*S.price;
+  S.cash+=rev;S.stock-=served;
+  S.rep=Math.max(1,Math.min(100,S.rep+served*0.1-lost*0.05));
+  S.log={want:want,served:served,lost:lost,rev:rev,cost:cost,w:S.w};
+  var p=(S.day>2?0.1:0)+(served>40?0.05:0);
+  if(S.pend){S.pend=false;if(Math.random()<.5)p=1}
+  S.ev=Math.random()<p;S.phase="result"
+}
+function step(){
+  if(S.day%10==0){S.cash-=300000;if(S.cash<0){S.phase="lose";return true}}
+  if(S.day>=30){S.phase="win";return true}
+  S.day++;return false
+}
+function next(){S.ev=false;if(!step())newDay()}
+function fix(t){
+  if(t=="full"){S.cash-=600000;next()}
+  else if(t=="cheap"){S.cash-=350000;S.pend=true;next()}
+  else{S.ev=false;for(var i=0;i<3;i++){if(step())return}newDay();S.msg="Киоск стоял закрытым два дня."}
+}
+function A(k,v){
+  if(k=="buy"){var c=v*400;if(S.cash<c)S.msg="Не хватает денег на зёрна.";else{S.cash-=c;S.stock+=v;S.msg=""}}
+  else if(k=="ad")S.ad=!S.ad;
+  else if(k=="play")play();
+  else if(k=="next")next();
+  else if(k=="fix")fix(v);
+  else if(k=="again"){init();return}
+  render()
+}
+function upd(){
+  var e=dem();
+  document.getElementById("pv").textContent=fmt(S.price);
+  document.getElementById("fc").textContent="Прогноз: "+Math.round(e*.85)+"–"+Math.round(e*1.15)+" клиентов"
+}
+function tally(n){var g=Math.floor(n/5);return "<s>IIII</s> ".repeat(g)+"I".repeat(n%5)}
+function head(){return '<header><div><b>День '+S.day+'</b> из 30</div><div class="cash">'+fmt(S.cash)+'</div></header><div class="rep"><span>Репутация</span><b>'+Math.round(S.rep)+' из 100</b></div><div class="bar"><i style="width:'+S.rep+'%"></i></div>'}
+function scene(){return '<div class="scene"><div class="kiosk"><div class="sign">ЗЕРНО</div><div class="awn"></div><div class="counter"><div class="man"></div><div class="mb"></div><div class="mach"></div></div></div><div class="board">'+(S.log&&S.phase=="result"?tally(S.log.served):"")+'</div></div>'}
+function plan(){
+  var left=Math.ceil(S.day/10)*10-S.day;
+  return '<p class="w">'+S.w.n+'. '+(left?'Аренда 300 000 ₸ через '+left+' дн.':'Вечером аренда 300 000 ₸.')+'</p>'+
+  '<div class="card"><label for="pr">Цена чашки: <b id="pv"></b></label><input id="pr" type="range" min="800" max="3000" step="100" value="'+S.price+'" oninput="S.price=+this.value;upd()"><p class="mut" id="fc"></p></div>'+
+  '<div class="card"><p>Зёрна на складе: <b>'+S.stock+'</b> чашек <span class="mut">(400 ₸ за чашку)</span></p><div class="row"><button class="sec" onclick="A(\'buy\',20)">+20</button><button class="sec" onclick="A(\'buy\',50)">+50</button><button class="sec" onclick="A(\'buy\',100)">+100</button></div></div>'+
+  '<div class="card"><button class="sec'+(S.ad?' on':'')+'" style="width:100%" onclick="A(\'ad\')">'+(S.ad?'Реклама включена':'Реклама: 40 000 ₸, клиентов в 1,3 раза больше')+'</button></div>'+
+  (S.msg?'<p class="err">'+S.msg+'</p>':'')+
+  '<button class="go" onclick="A(\'play\')">Открыть киоск</button>'
+}
+function result(){
+  var l=S.log;
+  var h='<div class="card"><p>'+l.w.n+'. Хотели кофе: <b>'+l.want+'</b>. Продано: <b>'+l.served+'</b>.'+(l.lost?' Не хватило зёрен: '+l.lost+'.':'')+'</p><p>Выручка <b class="g">+'+fmt(l.rev)+'</b>'+(l.cost?', реклама −'+fmt(l.cost):'')+'</p>'+(S.day%10==0?'<p class="err">Вечером спишется аренда: 300 000 ₸.</p>':'')+'</div>';
+  if(!S.ev)return h+'<button class="go" onclick="A(\'next\')">Следующий день</button>';
+  return h+'<div class="card ev"><b>Сломалась кофемашина</b><p class="mut">Без неё киоск не работает.</p>'+
+  '<button class="sec"'+(S.cash<600000?' disabled':'')+' onclick="A(\'fix\',\'full\')">Починить как надо: 600 000 ₸</button>'+
+  '<button class="sec"'+(S.cash<350000?' disabled':'')+' onclick="A(\'fix\',\'cheap\')">Мастер подешевле: 350 000 ₸ (может сломаться снова)</button>'+
+  '<button class="sec" onclick="A(\'fix\',\'close\')">Чинить самому: бесплатно, но киоск закрыт два дня</button></div>'
+}
+function end(){
+  var win=S.phase=="win";
+  return '<div class="end"><h1>'+(win?'Месяц позади':'Аренду нечем платить')+'</h1><p>'+(win?'Касса: <b>'+fmt(S.cash)+'</b>. Репутация: '+Math.round(S.rep)+' из 100.':'Не хватило: <b>'+fmt(-S.cash)+'</b>. Дней продержался: '+S.day+'.')+'</p><p class="mut">У каждого успеха есть своя цена.</p><button class="go" onclick="A(\'again\')">Сыграть ещё раз</button></div>'
+}
+function render(){
+  var a=document.getElementById("app");
+  a.innerHTML=(S.phase=="win"||S.phase=="lose")?end():head()+scene()+(S.phase=="plan"?plan():result());
+  if(S.phase=="plan")upd()
+}
+</script>
+<script>
+var V=true;
+function say(t){if(!V||!window.speechSynthesis)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="ru-RU";var v=speechSynthesis.getVoices().filter(function(x){return x.lang&&x.lang.indexOf("ru")==0})[0];if(v)u.voice=v;u.rate=1.05;speechSynthesis.speak(u)}catch(e){}}
+var IN={1:"День первый. Киоск Зерно открывается. О нас знают одиннадцать человек из ста.",10:"Десятый день. Скоро первая аренда.",20:"Двадцатый день. Район уже знает про Зерно.",30:"Последний день. Продержись до вечера."};
+function no(m){return {l:"Отказаться",c:0,f:function(){return m}}}
+var EV=[
+{id:"brk",t:"Сломалась кофемашина",d:"Без неё киоск не работает.",ch:[
+{l:"Починить как надо: 600 000 ₸",c:600000,f:function(){S.cash-=600000;return "Машину починили, она гудит как новая."}},
+{l:"Мастер подешевле: 350 000 ₸, может сломаться снова",c:350000,f:function(){S.cash-=350000;S.pend=true;return "Починили дёшево. Мастер сказал: «Держится на честном слове»."}},
+{l:"Чинить самому: бесплатно, но два дня закрыто",c:0,skip:1,f:function(){for(var i=0;i<3;i++){if(step())return ""}newDay();return "Два дня ты возился с машиной. Она снова работает."}}]},
+{id:"blog",t:"Блогер у киоска",d:"Известный блогер хочет снять обзор.",ok:function(){return S.day>2},ch:[
+{l:"Угостить: 20 чашек бесплатно",c:0,f:function(){S.stock-=Math.min(20,S.stock);S.rep=Math.min(100,S.rep+8);return "Блогер выложил ролик. Репутация растёт."}},
+{l:"Попросить денег за рекламу",c:0,f:function(){if(Math.random()<.5){S.rep=Math.max(1,S.rep-3);return "Блогер обиделся и ушёл. Репутация упала."}S.cash+=80000;S.rep=Math.min(100,S.rep+6);return "Блогер заплатил 80 000 ₸ и снял ролик!"}}]},
+{id:"san",t:"Проверка из санстанции",d:"Инспектор нашёл нарушения.",ok:function(){return S.day>3},ch:[
+{l:"Заплатить штраф: 150 000 ₸",c:150000,f:function(){S.cash-=150000;return "Штраф оплачен."}},
+{l:"Договориться: 60 000 ₸ (риск)",c:60000,f:function(){S.cash-=60000;if(Math.random()<.4){S.cash-=300000;S.rep=Math.max(1,S.rep-10);return "Инспектор оказался принципиальным: штраф 300 000 ₸ и скандал."}return "Договорились. Инспектор ушёл довольный."}}]},
+{id:"rival",t:"Конкурент напротив",d:"Через дорогу открылась новая кофейня.",ok:function(){return S.day>4},ch:[
+{l:"Снизить цену на 200 ₸",c:0,f:function(){S.price=Math.max(800,S.price-200);return "Цена снижена. Клиенты остались."}},
+{l:"Ответить рекламой: 40 000 ₸",c:40000,f:function(){S.cash-=40000;S.rep=Math.min(100,S.rep+3);return "Реклама сработала, район о нас знает."}},
+{l:"Не обращать внимания",c:0,f:function(){S.rep=Math.max(1,S.rep-4);return "Часть клиентов ушла через дорогу."}}]},
+{id:"rent",t:"Агент по аренде",d:"Желающих много. Хозяин хочет поднять аренду.",ok:function(){return S.day>6&&S.rent==300000},ch:[
+{l:"Согласиться: аренда 360 000 ₸",c:0,f:function(){S.rent=360000;return "Аренда теперь 360 000 ₸."}},
+{l:"Торговаться (риск)",c:0,f:function(){if(Math.random()<.5)return "Хозяин уступил. Аренда прежняя.";S.rent=400000;return "Хозяин разозлился: аренда 400 000 ₸."}}]},
+{id:"thief",t:"Подозрительный человек",d:"Ночью возле киоска кто-то крутился.",ok:function(){return S.stock>20},ch:[
+{l:"Поставить замок: 30 000 ₸",c:30000,f:function(){S.cash-=30000;return "Замок поставлен. Ночь прошла спокойно."}},
+{l:"Ничего не делать",c:0,f:function(){var n=Math.floor(S.stock/2);S.stock-=n;return "Утром не хватило "+n+" чашек зёрен."}}]},
+{id:"corp",t:"Заказ от офиса",d:"Бизнес-центр хочет 60 чашек по 1 300 ₸ завтра.",ok:function(){return S.day>4},ch:[
+{l:"Принять заказ",c:0,f:function(){if(S.stock<60){S.rep=Math.max(1,S.rep-4);return "Зёрен не хватило. Заказ сорван."}S.stock-=60;S.cash+=78000;S.rep=Math.min(100,S.rep+3);return "Заказ выполнен: плюс 78 000 ₸."}},no("Отказал. Работаем спокойно.")]},
+{id:"sup",t:"Поставщик с предложением",d:"200 чашек зёрен по 300 ₸ вместо 400 ₸.",ok:function(){return S.day>2},ch:[
+{l:"Купить: 60 000 ₸",c:60000,f:function(){S.cash-=60000;S.stock+=200;return "Склад полон зёрен."}},no("Отказал поставщику.")]},
+{id:"inv",t:"Старый знакомый",d:"Даёт 500 000 ₸ в долг. Вернуть 650 000 ₸ к ближайшей аренде.",ok:function(){return S.day>4&&!S.debt},ch:[
+{l:"Взять деньги",c:0,f:function(){S.cash+=500000;S.debt=650000;S.debtDay=Math.ceil((S.day+3)/10)*10;return "Деньги получены. Долг записан."}},no("Отказал. Сам справлюсь.")]},
+{id:"fest",t:"Рядом фестиваль",d:"Завтра будет толпа. Нужно 80 чашек зёрен за 32 000 ₸.",ok:function(){return S.day>3},ch:[
+{l:"Закупиться и встать ближе",c:32000,f:function(){S.cash-=32000;S.stock+=80;S.boost=1.8;return "Завтра будет толпа!"}},no("Пропустил фестиваль.")]},
+{id:"help",t:"Стажёр просится на работу",d:"Клиентов станет больше на 15%, но 10 000 ₸ в день.",ok:function(){return S.day>5&&!S.helper},ch:[
+{l:"Взять стажёра",c:0,f:function(){S.helper=true;return "Стажёр вышел на смену."}},no("Остался один.")]},
+{id:"rev",t:"Резкий отзыв в сети",d:"Клиент написал, что кофе остыл.",ok:function(){return S.day>3},ch:[
+{l:"Извиниться и подарить кофе",c:0,f:function(){S.rep=Math.min(100,S.rep+2);return "Клиент смягчился и поменял отзыв."}},
+{l:"Спорить в комментариях",c:0,f:function(){if(Math.random()<.5){S.rep=Math.max(1,S.rep-6);return "Спор увидели все. Репутация упала."}S.rep=Math.min(100,S.rep+1);return "Клиенты встали на твою сторону."}}]},
+{id:"sell",t:"Звонит бывший хозяин машины",d:"Готов выкупить весь бизнес за 2 000 000 ₸.",ok:function(){return S.day>=15},ch:[
+{l:"Продать и выйти из игры",c:0,f:function(){S.cash+=2000000;S.sold=true;S.phase="win";return ""}},no("Отказал. Зерно моё.")]}
+];
+function pick(){var l=EV.filter(function(e){return e.id!="brk"&&S.seen.indexOf(e.id)<0&&(!e.ok||e.ok())});if(!l.length)return null;var e=l[Math.floor(Math.random()*l.length)];S.seen.push(e.id);if(S.seen.length>5)S.seen.shift();return e}
+function init(){S={day:1,cash:900000,rep:11,stock:20,price:1500,ad:false,pend:false,ev:null,log:null,msg:"",news:"",sp:"",phase:"plan",rent:300000,helper:false,debt:0,debtDay:0,boost:1,seen:[],sold:false};newDay();render()}
+var _nd=newDay;newDay=function(){_nd();S.news="";S.sp=(IN[S.day]||"")+" "+S.w.n+"."};
+function dem(){return 120*S.rep/100*Math.pow(1500/S.price,1.6)*S.w.k*(S.ad?1.3:1)*(S.helper?1.15:1)*S.boost}
+function play(){
+var cost=0;if(S.ad&&S.cash>=40000)cost+=40000;if(S.helper)cost+=10000;S.cash-=cost;
+var want=Math.round(dem()*(.85+Math.random()*.3)),served=Math.min(want,S.stock),lost=want-served,rev=served*S.price;
+S.cash+=rev;S.stock-=served;S.boost=1;
+S.rep=Math.max(1,Math.min(100,S.rep+served*.1-lost*.05));
+S.log={want:want,served:served,lost:lost,rev:rev,cost:cost,w:S.w};
+var p=(S.day>2?.1:0)+(served>40?.05:0);
+if(S.pend){S.pend=false;if(Math.random()<.5)p=1}
+S.ev=Math.random()<p?EV[0]:(S.day>1&&Math.random()<.6?pick():null);
+S.phase="result";
+S.sp="Продано "+served+" чашек из "+want+". Выручка "+rev+" тенге."+(S.ev?" "+S.ev.t+". "+S.ev.d:"")}
+function step(){
+if(S.day%10==0){S.cash-=S.rent;if(S.debt&&S.day>=S.debtDay){S.cash-=S.debt;S.debt=0}if(S.cash<0){S.phase="lose";return true}}
+if(S.day>=30){S.phase="win";return true}
+S.day++;return false}
+function choose(i){var c=S.ev.ch[i],r=c.f();S.ev=null;if((S.phase=="result"||S.phase=="plan")&&!c.skip)next();if(S.phase=="plan"){S.news=r;S.sp=r+" "+S.sp}}
+function A(k,v){
+if(k=="buy"){var c=v*400;if(S.cash<c)S.msg="Не хватает денег на зёрна.";else{S.cash-=c;S.stock+=v;S.msg=""}}
+else if(k=="ad")S.ad=!S.ad;
+else if(k=="play")play();
+else if(k=="next")next();
+else if(k=="choose")choose(v);
+else if(k=="voice"){V=!V;if(!V&&window.speechSynthesis)speechSynthesis.cancel()}
+else if(k=="again"){init();return}
+render()}
+var _plan=plan;
+plan=function(){return (S.news?'<div class="card news"><b>'+S.news+'</b></div>':"")+_plan().replace(/300[\s\u00a0\u202f]000 ₸/g,fmt(S.rent))+(S.debt?'<p class="mut">Долг '+fmt(S.debt)+' вернуть до дня '+S.debtDay+'.</p>':"")+(S.helper?'<p class="mut">Стажёр работает: −10 000 ₸ в день.</p>':"")};
+function result(){
+var l=S.log;
+var h='<div class="card"><p>'+l.w.n+'. Хотели кофе: <b>'+l.want+'</b>. Продано: <b>'+l.served+'</b>.'+(l.lost?' Не хватило зёрен: '+l.lost+'.':'')+'</p><p>Выручка <b class="g">+'+fmt(l.rev)+'</b>'+(l.cost?', расходы −'+fmt(l.cost):'')+'</p>'+(S.day%10==0?'<p class="err">Вечером спишется аренда: '+fmt(S.rent)+(S.debt&&S.day>=S.debtDay?' и долг '+fmt(S.debt):'')+'.</p>':'')+'</div>';
+if(!S.ev)return h+'<button class="go" onclick="A(\'next\')">Следующий день</button>';
+return h+'<div class="card ev"><b>'+S.ev.t+'</b><p class="mut">'+S.ev.d+'</p>'+S.ev.ch.map(function(c,i){return '<button class="sec"'+(S.cash<c.c?' disabled':'')+' onclick="A(\'choose\','+i+')">'+c.l+'</button>'}).join("")+'</div>'}
+function scene(){
+var r=S.phase=="result",l=S.log,n=r?Math.min(l.served,8):0,cu="";
+for(var i=0;i<n;i++)cu+='<i class="cu" style="animation-delay:'+(i*.45)+'s"></i>';
+return '<div class="scene'+(r?' play':'')+(r&&S.ev?' shake':'')+'"><div class="kiosk"><div class="sign">ЗЕРНО</div><div class="awn"></div><div class="counter"><div class="man"></div><div class="mb"></div><div class="mach"></div><b class="stm"></b><b class="stm s2"></b></div></div><div class="board">'+(r?tally(l.served):"")+'</div>'+cu+(r&&l.rev?'<div class="coin">+'+fmt(l.rev)+'</div>':"")+'</div>'}
+var _end=end;
+end=function(){if(S.sold)return '<div class="end"><h1>Сделка закрыта</h1><p>Ты продал Зерно. Касса: <b>'+fmt(S.cash)+'</b>.</p><p class="mut">Иногда лучший ход — вовремя уйти.</p><button class="go" onclick="A(\'again\')">Сыграть ещё раз</button></div>';return _end()};
+function render(){
+var a=document.getElementById("app");
+if(S.phase=="win")S.sp=S.sold?"Ты продал бизнес. Сделка закрыта.":"Месяц позади. Ты справился.";
+if(S.phase=="lose")S.sp="Аренду платить нечем. Игра окончена.";
+a.innerHTML=(S.phase=="win"||S.phase=="lose")?end():head()+scene()+(S.phase=="plan"?plan():result());
+if(S.phase=="plan")upd();
+document.getElementById("vt").textContent="Озвучка: "+(V?"вкл":"выкл");
+if(S.sp){say(S.sp);S.sp=""}}
+var P={rent:1.35,san:.75,sell:.7,blog:1.45,corp:.85,rev:1.2};
+var CC=["#6b8795","#b08a5b","#c76a8a","#4a8f7b","#8a77b8","#d0cfcb"];
+var CHC={blog:"#d9667f",san:"#2b3a67",rival:"#4a8f7b",rent:"#7b5ea7",thief:"#444",corp:"#1d2b33",sup:"#8a6b36",inv:"#2f8f9d",fest:"#e0705a",help:"#6b8795",rev:"#a86bb0",sell:"#1d2b33"};
+var ACC={san:"cap",rent:"bun",sell:"tie",corp:"tie"};
+function say(t,p,q){if(!V||!window.speechSynthesis)return;try{if(!q)speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="ru-RU";var vs=speechSynthesis.getVoices().filter(function(x){return x.lang&&x.lang.indexOf("ru")==0});var v=vs.filter(function(x){return /Google|Natural|Milena|Yuri|Katya|Pavel|Alena/i.test(x.name)})[0]||vs[0];if(v)u.voice=v;u.rate=1;u.pitch=p||1;speechSynthesis.speak(u)}catch(e){}}
+function man(c,m,k){
+var r=m=="o"?2.8:1.8,s=m=="s";
+var mo=m=="o"?'<ellipse cx="20" cy="25" rx="3" ry="4" fill="#1d2b33"/>':'<path d="M14 '+(s?26:22)+' Q20 '+(s?20:28)+' 26 '+(s?26:22)+'" fill="none" stroke="#1d2b33" stroke-width="2.4" stroke-linecap="round"/>';
+var ac=k=="cap"?'<rect x="6" y="1" width="28" height="8" rx="4" fill="#1d2b33"/>':k=="bun"?'<circle cx="20" cy="1" r="6" fill="#b9b9c4"/>':"";
+var tie=k=="tie"?'<path d="M20 31l-4 6 4 14 4-14z" fill="#c8442f"/>':"";
+var lg='stroke="#1d2b33" stroke-width="3" stroke-linecap="round"';
+return '<svg class="mn" viewBox="0 -6 40 88"><g class="bd"><line class="lg" x1="15" y1="60" x2="15" y2="78" '+lg+'/><line class="lg l2" x1="25" y1="60" x2="25" y2="78" '+lg+'/><rect x="8" y="30" width="24" height="32" rx="9" fill="'+c+'"/>'+tie+ac+'<circle cx="20" cy="17" r="13" fill="#fff" stroke="#1d2b33" stroke-width="3"/><circle cx="15" cy="16" r="'+r+'" fill="#1d2b33"/><circle cx="25" cy="16" r="'+r+'" fill="#1d2b33"/>'+mo+(k=="cap"?'<rect x="6" y="1" width="28" height="7" rx="3" fill="#1d2b33"/>':"")+'</g></svg>'}
+function scene(){
+var r=S.phase=="result",l=S.log,ev=r?S.ev:null,cu="";
+var mood=ev?(ev.id=="brk"?"o":"s"):(r&&(l.lost||!l.served)?"s":"h");
+if(r)for(var i=0;i<Math.min(l.served,6);i++)cu+='<span class="cs" style="animation-delay:'+(i*.5)+'s">'+man(CC[i%6],"h")+'</span>';
+return '<div class="scene'+(r?' play':'')+(ev?' shake':'')+'"><div class="kiosk"><div class="sign">ЗЕРНО</div><div class="awn"></div><div class="win">'+man("#e9a62b",mood)+'<div class="mach2"></div><b class="stm"></b><b class="stm s2"></b></div><div class="cnt"></div></div>'+(r&&!ev?'<div class="board">'+tally(l.served)+'</div>':'')+cu+(ev&&ev.id!="brk"?'<div class="vis">'+man(CHC[ev.id]||"#6b8795","h",ACC[ev.id])+'</div>':'')+(ev?'<div class="bub">'+ev.d+'</div>':'')+(r&&!ev&&l.rev?'<div class="coin">+'+fmt(l.rev)+'</div>':'')+'</div>'}
+var _pl=play;play=function(){_pl();if(S.ev){S.sp2=S.ev.t+". "+S.ev.d;S.sp=S.sp.replace(" "+S.ev.t+". "+S.ev.d,"")}};
+var _r=render;render=function(){var s2=S.sp2;S.sp2="";_r();if(s2)say(s2,P[S.ev&&S.ev.id]||1,1)};
+var CFG={diff:1,q:2,d3:false,v:true,rate:1};
+try{var _s=JSON.parse(localStorage.getItem("zerno")||"{}");for(var k in _s)CFG[k]=_s[k]}catch(e){}
+function sv(){try{localStorage.setItem("zerno",JSON.stringify(CFG))}catch(e){}}
+function ap(){var h=document.documentElement;h.dataset.q=CFG.q;h.dataset.d=CFG.d3?1:0;V=CFG.v}
+var DF=[{n:"Лёгкий",cash:1500000,rent:250000,cp:.6,dm:1.1},{n:"Обычный",cash:900000,rent:300000,cp:1,dm:1},{n:"Тяжёлый",cash:600000,rent:350000,cp:1.5,dm:.9}];
+W=[{n:"Солнечно",k:1.15,p:.22},{n:"Пасмурно",k:1,p:.3},{n:"Дождь",k:.65,p:.2},{n:"Жара",k:1.25,p:.15},{n:"Ветрено",k:.8,p:.13}];
+IN[3]="Третий день. Слухи расходятся по району.";IN[5]="Пятый день. Появились постоянные клиенты.";IN[7]="Неделя позади. Пора считать деньги.";IN[12]="Двенадцатый день. Конкуренты присматриваются.";IN[15]="Середина месяца. Время смелых решений.";IN[18]="Восемнадцатый день. Мелочи решают всё.";IN[22]="Двадцать второй день. Району тесно от кофеен.";IN[25]="Осталось пять дней. Не расслабляйся.";IN[27]="Три дня до финала.";
+function say(t,p,q){if(!V||!window.speechSynthesis)return;try{if(!q)speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="ru-RU";var vs=speechSynthesis.getVoices().filter(function(x){return x.lang&&x.lang.indexOf("ru")==0});var m=vs.filter(function(x){return /Yuri|Pavel|Dmitri|Dmitry|Maxim|Ivan|Aleksandr|Male|Мужск/i.test(x.name)})[0];if(m){u.voice=m;u.pitch=p||1}else{if(vs[0])u.voice=vs[0];u.pitch=(p||1)*.75}u.rate=CFG.rate;speechSynthesis.speak(u)}catch(e){}}
+var CN=["Кофе Хаус","Бариста-Бро","Мокко"];
+function addC(){var c={n:CN[S.comps.length%3],price:1200+Math.round(Math.random()*6)*100,pw:(.35+Math.random()*.2)*S.df.cp};S.comps.push(c);return c}
+function cm(){var s=0;(S.comps||[]).forEach(function(c){s+=c.pw*Math.pow(S.price/c.price,1.3)});return 1/(1+s)}
+var _dem=dem;dem=function(){return _dem()*cm()*(S.df?S.df.dm:1)};
+function rc(x){S.rep=Math.max(1,Math.min(100,S.rep+x))}
+function E(id,t,d,ok,ch){EV.push({id:id,t:t,d:d,ok:ok,ch:ch})}
+function C(l,c,f){return {l:l,c:c,f:f}}
+function cd(){S.comps[0].price=Math.max(900,S.comps[0].price-300)}
+EV.filter(function(e){return e.id=="rival"})[0].ok=function(){return S.day>8};
+var hc=function(){return S.comps&&S.comps.length>0};
+E("war","Ценовая война","Конкурент сбросил цену на 300 ₸.",function(){return hc()&&S.day>7},[C("Снизить цену так же",0,function(){cd();S.price=Math.max(800,S.price-300);return "Цена снижена вслед за конкурентом."}),C("Акция: 40 000 ₸, цена прежняя",40000,function(){cd();S.cash-=40000;rc(4);return "Акция удержала постоянных клиентов."}),C("Ничего не делать",0,function(){cd();rc(-3);return "Конкурент забрал часть клиентов."})]);
+E("slur","Слух про вашу кофейню","Конкурент пустил слух, что у вас старые зёрна.",hc,[C("Показать фото склада: 20 000 ₸",20000,function(){S.cash-=20000;rc(-1);return "Слух развеян."}),C("Промолчать",0,function(){rc(-8);return "Слух разошёлся по району."})]);
+E("buy","Конкурент продаёт киоск","Он устал и просит за свой киоск 500 000 ₸.",function(){return hc()&&S.day>10},[C("Выкупить: 500 000 ₸",500000,function(){S.cash-=500000;S.comps.shift();rc(5);return "Конкурент исчез с карты района."}),no("Отказал. Пусть мучается.")]);
+E("flood","Ливень затопил киоск","Вода залила склад.",function(){return S.day>3},[C("Вызвать спасателей: 50 000 ₸",50000,function(){S.cash-=50000;return "Зёрна спасли."}),C("Откачать самому",0,function(){var n=Math.floor(S.stock*.3);S.stock-=n;return "Промокло "+n+" чашек зёрен."})]);
+E("kids","Школьная экскурсия","Классу нужно 30 чашек какао по 800 ₸.",function(){return S.day>2},[C("Принять заказ",0,function(){if(S.stock<30){rc(-2);return "Зёрен не хватило."}S.stock-=30;S.cash+=24000;rc(4);return "Школьники в восторге: плюс 24 000 ₸."}),no("Отказал.")]);
+E("mayor","Мэр открывает набережную","Завтра туристов будет в полтора раза больше.",function(){return S.day>5},[C("Повесить флаг: 10 000 ₸",10000,function(){S.cash-=10000;S.boost=1.6;return "Флаг повесил. Завтра будет людно."}),no("Не стал тратиться.")]);
+E("tax","Налоговая проверка","Просят документы за месяц.",function(){return S.day>6},[C("Нанять консультанта: 50 000 ₸",50000,function(){S.cash-=50000;return "Всё чисто, придирок нет."}),C("Разобраться самому (риск)",0,function(){if(Math.random()<.5){S.cash-=120000;return "Нашли ошибку: штраф 120 000 ₸."}return "Справился сам, всё в порядке."})]);
+E("gran","Бабушка-завсегдатай","Приходит каждый день и всем рассказывает про Зерно.",function(){return S.day>2},[C("Налить кофе бесплатно",0,function(){S.stock=Math.max(0,S.stock-1);rc(5);return "Бабушка рассказала всему двору."}),no("Бабушка поджала губы.")]);
+E("cont","Конкурс бариста","Взнос 50 000 ₸. Победитель получает известность.",function(){return S.day>8},[C("Участвовать",50000,function(){S.cash-=50000;if(Math.random()<.4){rc(15);return "Ты победил! Репутация взлетела."}return "Не повезло, но опыта прибавилось."}),no("Пропустил конкурс.")]);
+E("lot","Лотерейный билет","Продавец предлагает билет за 10 000 ₸.",function(){return S.day>4},[C("Купить",10000,function(){S.cash-=10000;if(Math.random()<.1){S.cash+=300000;return "Выигрыш 300 000 ₸!"}return "Пусто. Бывает."}),no("Прошёл мимо.")]);
+E("fake","Странный покупатель","Расплатился подозрительной купюрой.",function(){return S.day>5},[C("Проверить в банке: 5 000 ₸",5000,function(){S.cash-=5000;return "Банк подтвердил: купюра настоящая."}),C("Взять не проверяя",0,function(){if(Math.random()<.5){S.cash-=40000;return "Купюра фальшивая: минус 40 000 ₸."}return "Купюра оказалась нормальной."})]);
+ACC.tax="tie";
+var _i=init;init=function(){var d=DF[CFG.diff];_i();S.df=d;S.cash=d.cash;S.rent=d.rent;S.comps=[];render()};
+var _n3=newDay;newDay=function(){S.cn="";_n3();if(!S.comps)return;var n=S.day==6?1:S.day==14?2:S.day==22?3:0;if(n&&S.comps.length<n){var c=addC();S.cn="Открылась «"+c.n+"». Цена чашки: "+c.price+" тенге.";S.sp=S.cn+" "+S.sp}};
+var _p3=play;play=function(){_p3();(S.comps||[]).forEach(function(c){c.price=Math.max(900,Math.min(2200,c.price+Math.round(Math.random()*3-1.5)*100))})};
+var _pl3=plan;plan=function(){var h=_pl3(),cs=(S.comps||[]).map(function(c){return "<p>"+c.n+": <b>"+fmt(c.price)+"</b></p>"}).join("");var card=cs?'<div class="card"><b>Конкуренты</b>'+cs+'<p class="mut">Чем выше ваша цена относительно их цены, тем больше клиентов уходит.</p></div>':"";return (S.cn?'<div class="card news"><b>'+S.cn+'</b></div>':"")+h.replace('<button class="go"',card+'<button class="go"')};
+function seg(l,o,cur,mk){return '<div class="card"><p class="mut">'+l+'</p><div class="row">'+o.map(function(x){return '<button class="sec'+(cur===x[1]?' on':'')+'" onclick="'+mk(x[1])+'">'+x[0]+'</button>'}).join("")+'</div></div>'}
+function K(k){return function(v){return "A('cfg',['"+k+"',"+v+"])"}}
+function menu(){var d=DF[CFG.diff];return '<div class="end"><h1>ЗЕРНО</h1><p class="mut">Кофейный киоск. 30 дней, чтобы выжить.</p></div>'+seg("Сложность",DF.map(function(x,i){return [x.n,i]}),CFG.diff,function(v){return "A('diff',"+v+")"})+'<p class="mut">Старт: '+fmt(d.cash)+', аренда '+fmt(d.rent)+', конкуренты '+(d.cp<1?"слабее":d.cp>1?"сильнее":"обычные")+'.</p><button class="go" onclick="A(\'start\')">Играть</button><button class="sec" style="width:100%;margin-top:10px" onclick="A(\'set\')">Настройки</button>'}
+function setm(){return '<h2>Настройки</h2>'+seg("Озвучка (мужской голос)",[["Вкл",true],["Выкл",false]],CFG.v,K("v"))+seg("Скорость голоса",[["Медленно",.85],["Нормально",1],["Быстро",1.2]],CFG.rate,K("rate"))+seg("Качество графики",[["Низкое",0],["Среднее",1],["Высокое",2],["Ультра",3]],CFG.q,K("q"))+seg("3D-сцена",[["Вкл",true],["Выкл",false]],CFG.d3,K("d3"))+'<button class="sec" style="width:100%" onclick="A(\'test\')">Проверить голос</button><button class="go" onclick="A(\'menu\')">Назад</button>'}
+var _r2=render;render=function(){ap();if(S.phase=="menu"||S.phase=="set"){document.getElementById("app").innerHTML=S.phase=="menu"?menu():setm();document.getElementById("vt").textContent="Озвучка: "+(V?"вкл":"выкл");return}_r2()};
+var _A=A;A=function(k,v){
+if(k=="menu"||k=="again"){home();return}
+if(k=="diff"){CFG.diff=v;sv();render();return}
+if(k=="cfg"){CFG[v[0]]=v[1];sv();if(v[0]=="v"&&!v[1]&&window.speechSynthesis)speechSynthesis.cancel();render();return}
+if(k=="set"){S.phase="set";render();return}
+if(k=="start"){init();return}
+if(k=="test"){say("Привет! Это голос рассказчика кофейного киоска.",1);return}
+if(k=="voice"){CFG.v=!CFG.v;sv();if(!CFG.v&&window.speechSynthesis)speechSynthesis.cancel();render();return}
+_A(k,v)};
+function home(){S={phase:"menu"};render()}
+var CU=[{s:"₸",w:"тенге",k:1,n:"Тенге"},{s:"₽",w:"рублей",k:.17,n:"Рубли"},{s:"$",w:"долларов",k:.002,n:"Доллары"},{s:"€",w:"евро",k:.0018,n:"Евро"}];
+function fmt(n){var c=CU[CFG.cur||0],v=n*c.k,d=(c.k<.01&&Math.abs(v)<1000)?2:0;return v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d}).replace(/[\u00a0\u202f]/g," ")+" "+c.s}
+function conv(t){var c=CU[CFG.cur||0];return t.replace(/(\d[\d\s]*)\s?(?:₸|тенге)/g,function(m,n){var v=parseInt(n.replace(/\D/g,""),10)*c.k;return (c.k<.01&&v<1000?+v.toFixed(2):Math.round(v))+" "+c.w})}
+var _say=say;say=function(t,p,q){_say(conv(t),p,q)};
+DF[0].rm=.85;DF[1].rm=1;DF[2].rm=1.2;
+var LOC=[{n:"Киоск у остановки",c:400000,r:150000,t:.8,cap:60,d:"Дёшево, но тесно: до 60 чашек в день. Аренда 150 000 ₸."},{n:"Кафе в аренде",c:900000,r:300000,t:1.1,cap:120,d:"Ремонт и вывеска. До 120 чашек в день. Аренда 300 000 ₸."},{n:"Купить помещение",c:3500000,r:60000,t:1.2,cap:150,d:"Дорого, зато без аренды: только налог 60 000 ₸."}];
+var MAC=[{n:"Б/у кофемашина",c:1200000,q:.8,b:.08,cp:.8,d:"Дёшево, но ломается чаще и делает меньше чашек."},{n:"Профессиональная",c:2500000,q:1,b:0,cp:1,d:"Надёжный середняк."},{n:"Топовая, как в видео",c:4000000,q:1.4,b:-.05,cp:1.3,d:"Дорого, но клиенты влюбляются быстрее и машина надёжнее."}];
+var SU={loc:null,mac:null};
+function opt(a,i,key,cur){return '<button class="opt'+(cur===i?' on':'')+'" onclick="'+"A('pk',['"+key+"',"+i+"])"+'"><b>'+a.n+'</b><span>'+fmt(a.c)+'</span><small>'+a.d+'</small></button>'}
+function su(){var l=SU.loc==null?null:LOC[SU.loc],m=SU.mac==null?null:MAC[SU.mac],rest=6000000-(l?l.c:0)-(m?m.c:0),ok=l&&m&&rest>=200000;
+return '<h2>Открываем кофейню</h2><p>Стартовый капитал: <b>'+fmt(6000000)+'</b></p>'+seg("Валюта (курс примерный, только для показа)",CU.map(function(c,i){return [c.s+" "+c.n,i]}),CFG.cur||0,function(v){return "A('cfg',['cur',"+v+"])"})+'<h2>Где открыться</h2>'+LOC.map(function(a,i){return opt(a,i,"loc",SU.loc)}).join("")+'<h2>Какая кофемашина</h2>'+MAC.map(function(a,i){return opt(a,i,"mac",SU.mac)}).join("")+'<div class="card"><p>Останется на запуск: <b class="'+(rest<200000?'err':'g')+'">'+fmt(rest)+'</b></p>'+(rest<200000?'<p class="err">Не хватает денег на запуск. Выберите дешёвое.</p>':'')+'</div><button class="go"'+(ok?'':' disabled')+' onclick="'+"A('go')"+'">Открыть кофейню</button><button class="sec" style="width:100%;margin-top:10px" onclick="'+"A('menu')"+'">Назад</button>'}
+function menu(){var d=DF[CFG.diff];return '<div class="end"><h1>ЗЕРНО</h1><p class="mut">Кофейный бизнес. 30 дней, чтобы выжить.</p></div>'+seg("Сложность",DF.map(function(x,i){return [x.n,i]}),CFG.diff,function(v){return "A('diff',"+v+")"})+'<p class="mut">'+["Аренда дешевле на 15%, конкуренты слабее, клиентов больше.","Стандартные условия.","Аренда дороже на 20%, конкуренты сильнее, клиентов меньше."][CFG.diff]+'</p><button class="go" onclick="'+"A('start')"+'">Играть</button><button class="sec" style="width:100%;margin-top:10px" onclick="'+"A('set')"+'">Настройки</button>'}
+var _d2=dem;dem=function(){return _d2()*(S.tr||1)};
+var _i2=init;init=function(){_i2();var l=LOC[SU.loc],m=MAC[SU.mac],d=S.df;S.cash=6000000-l.c-m.c;S.rent=Math.round(l.r*d.rm);S.tr=l.t;S.cap=Math.round(l.cap*m.cp);S.mq=m.q;S.bk=m.b;render()};
+var _p5=play;play=function(){var r=S.stock,c=S.cap||999,r0=S.rep;S.stock=Math.min(r,c);_p5();S.stock+=r-Math.min(r,c);S.rep=Math.max(1,Math.min(100,r0+(S.rep-r0)*(S.mq||1)));if(!S.ev&&Math.random()<(S.bk||0)){S.ev=EV[0];S.sp2=S.ev.t+". "+S.ev.d}else if(S.ev&&S.ev.id=="brk"&&(S.bk||0)<0&&Math.random()<.4){S.sp=S.sp.replace(" "+S.ev.t+". "+S.ev.d,"");S.ev=null;S.sp2=""}};
+function post(){if(!CFG.cur)return;var a=document.getElementById("app");a.innerHTML=a.innerHTML.replace(/(\d[\d\s]*)\s?₸/g,function(m,n){return fmt(parseInt(n.replace(/\D/g,""),10))})}
+var _r3=render;render=function(){if(S.phase=="su"){ap();document.getElementById("app").innerHTML=su()}else _r3();post()};
+var _A3=A;A=function(k,v){
+if(k=="start"){SU={loc:null,mac:null};S={phase:"su"};render();return}
+if(k=="pk"){SU[v[0]]=v[1];render();return}
+if(k=="go"){init();return}
+_A3(k,v)};
+function bt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ")+" ₸"}
+[1,2].forEach(function(i){var m=MAC[i];EV[0].ch.push(C("Купить новую: "+m.n.toLowerCase()+", "+bt(m.c),m.c,function(){S.cash-=m.c;S.mq=m.q;S.bk=m.b;S.cap=Math.round(LOC[SU.loc].cap*m.cp)+(S.xc||0);return "Купили новую машину: "+m.n.toLowerCase()+". Старую увезли на запчасти."}))});
+E("cheap","Поставщик «ЗёрнаОпт»","Предлагает 100 чашек зёрен по 250 ₸ вместо 400 ₸. Качество неизвестно.",function(){return S.day>3},[C("Взять без проверки: 25 000 ₸",25000,function(){S.cash-=25000;S.stock+=100;if(Math.random()<.4){S.bd=3;rc(-5);return "Зёрна оказались плохими. Клиенты жалуются, репутация упала."}return "Повезло: зёрна нормальные, сэкономил 15 000 ₸."}),C("Сначала пробник: 5 000 ₸ (сделка 25 000 ₸)",30000,function(){S.cash-=5000;if(Math.random()<.4)return "Пробник отвратительный. От сделки отказался.";S.cash-=25000;S.stock+=100;return "Пробник хороший. Взял 100 чашек по 250 ₸."}),no("Отказался: репутация важнее экономии.")]);
+var _d3=dem;dem=function(){return _d3()*(S.bd>0?.8:1)};
+var _p6=play;play=function(){_p6();if(S.bd>0)S.bd--};
+var _pl6=plan;plan=function(){var h=_pl6(),n=S.br||0,b="";if(S.day>=3&&n<2)b='<div class="card"><b>Новые точки</b>'+[0,1].map(function(i){var l=LOC[i];return '<button class="sec"'+(S.cash<l.c?' disabled':'')+' style="width:100%;margin-top:8px" onclick="'+"A('br',"+i+")"+'">'+l.n+': '+bt(l.c)+', аренда +'+bt(l.r)+'</button>'}).join("")+'</div>';return (S.bd>0?'<p class="err">Плохие зёрна: клиенты недовольны ещё '+S.bd+' дн.</p>':"")+(n?'<p class="mut">Точек: '+(n+1)+'</p>':"")+h.replace('<button class="go"',b+'<button class="go"')};
+var AI={log:[],busy:false};
+function paint(){var el=document.getElementById("ailog");if(!el)return;el.innerHTML="";AI.log.slice(-8).forEach(function(m){var p=document.createElement("p");p.className=m[0];p.textContent=(m[0]=="me"?"Вы: ":"Помощник: ")+m[1];el.appendChild(p)});el.scrollTop=el.scrollHeight}
+function mountAI(){var el=document.getElementById("ai");if(!el)return;var on=S.phase=="plan"||S.phase=="result";if(!on){el.innerHTML="";return}if(!document.getElementById("aiq")){el.innerHTML='<div class="card"><b>Помощник</b><div id="ailog" class="ailog"></div><div class="row"><input id="aiq" placeholder="Например: купи зёрен на 50 чашек"><button class="sec" onclick="aiGo()">Спросить</button></div></div>';document.getElementById("aiq").addEventListener("keydown",function(e){if(e.key=="Enter")aiGo()});paint()}}
+function aiAdd(w,t){AI.log.push([w,t]);paint()}
+function aiGo(){var i=document.getElementById("aiq"),q=i.value.trim();if(!q||AI.busy)return;i.value="";askAI(q)}
+function aiState(){var c=CU[CFG.cur||0];return "День "+S.day+" из 30. Деньги: "+Math.round(S.cash)+" тенге. Репутация: "+Math.round(S.rep)+"/100. Зёрен на складе: "+S.stock+" чашек. Цена чашки: "+S.price+" тенге. Реклама: "+(S.ad?"включена":"выключена")+". Погода: "+S.w.n+". Прогноз клиентов: "+Math.round(dem()*.85)+"–"+Math.round(dem()*1.15)+". Максимум чашек в день: "+(S.cap||"нет ограничения")+". Аренда: "+Math.round(S.rent)+" тенге каждые 10 дней. Конкуренты: "+((S.comps||[]).map(function(x){return x.n+" "+x.price+" тенге"}).join(", ")||"нет")+". Валюта игрока: "+c.n+", 1 тенге = "+c.k+" "+c.s+". Фаза: "+(S.phase=="plan"?"утро, можно менять настройки":"итог дня, настройки менять нельзя")+"."}
+var AIT=[{name:"set_price",description:"Поставить цену чашки в тенге (800–3000, шаг 100)",inputSchema:{type:"object",properties:{price:{type:"number"}},required:["price"]},execute:function(a){if(S.phase!="plan")return "Сейчас нельзя менять цену.";S.price=Math.max(800,Math.min(3000,Math.round(a.price/100)*100));render();return "Цена теперь "+S.price+" тенге."}},
+{name:"buy_beans",description:"Купить зёрна (число чашек), 400 тенге за чашку",inputSchema:{type:"object",properties:{cups:{type:"number"}},required:["cups"]},execute:function(a){var n=Math.max(0,Math.round(a.cups)),c=n*400;if(S.phase!="plan")return "Сейчас нельзя.";if(c>S.cash)return "Не хватает денег.";S.cash-=c;S.stock+=n;render();return "Куплено "+n+" чашек за "+c+" тенге."}},
+{name:"set_ad",description:"Включить или выключить рекламу на сегодня (40000 тенге)",inputSchema:{type:"object",properties:{on:{type:"boolean"}},required:["on"]},execute:function(a){if(S.phase!="plan")return "Сейчас нельзя.";S.ad=!!a.on;render();return "Реклама "+(S.ad?"включена":"выключена")+"."}},
+{name:"open_kiosk",description:"Открыть киоск и провести игровой день. Только если игрок прямо попросил",inputSchema:{type:"object",properties:{}},execute:function(){if(S.phase!="plan")return "День уже идёт.";A("play");return "День проведён."}}];
+function localAI(q){var t=q.toLowerCase(),m;
+if(S.phase!="plan")return "Сейчас итог дня. Нажми «Следующий день» и скажи, что сделать.";
+if(m=t.match(/цен\D*(\d{3,4})/)){S.price=Math.max(800,Math.min(3000,Math.round(m[1]/100)*100));render();return "Поставил цену "+fmt(S.price)+"."}
+if(m=t.match(/(?:куп|закуп|зёрен|зерен)\D*(\d+)/)){var n=+m[1],c=n*400;if(c>S.cash)return "Не хватает денег на "+n+" чашек.";S.cash-=c;S.stock+=n;render();return "Купил зёрна на "+n+" чашек."}
+if(/реклам/.test(t)){S.ad=!/выкл|убер|отмен|без/.test(t);render();return "Реклама "+(S.ad?"включена.":"выключена.")}
+if(/дела|состоян|как/.test(t))return "День "+S.day+", деньги "+fmt(S.cash)+", репутация "+Math.round(S.rep)+", зёрен на "+S.stock+" чашек.";
+return "Я понимаю: «цена 1700», «купи зёрен на 50», «включи рекламу», «как дела»."}
+async function askAI(q){AI.busy=true;aiAdd("me",q);aiAdd("ai","Думаю…");var ans;
+try{var sm=window.claude&&await claude.use("sample");if(!sm)throw 0;
+var hist=AI.log.slice(-7,-2).map(function(m){return (m[0]=="me"?"Игрок: ":"Помощник: ")+m[1]}).join("\n");
+var r=await sm("Ты помощник-управляющий кофейни «Зерно» в игре-симуляторе. Отвечай по-русски, коротко: 1–3 предложения, без списков. Если игрок просит действие, выполни его инструментом и подтверди. Советы давай по состоянию ниже, цифры не выдумывай. В инструментах суммы в тенге, игроку называй их в его валюте.\nСостояние: "+aiState()+"\nНедавний разговор:\n"+hist+"\nИгрок: "+q,{modelTier:"default",cache:false,tools:AIT});ans=r.text}
+catch(e){ans=(e&&e.code=="rate_limited")?"Слишком много запросов, подожди минуту.":localAI(q)}
+AI.log.pop();AI.busy=false;aiAdd("ai",ans);say(ans,1)}
+var _r4=render;render=function(){_r4();mountAI()};
+var _A4=A;A=function(k,v){
+if(k=="go")AI.log=[["ai","Я помощник кофейни. Могу ставить цену, закупать зёрна, включать рекламу и советовать."]];
+if(k=="br"){var l=LOC[v];if(S.phase=="plan"&&(S.br||0)<2&&S.cash>=l.c){S.cash-=l.c;S.br=(S.br||0)+1;S.tr+=l.t*.7;var x=Math.round(l.cap*.8);S.xc=(S.xc||0)+x;S.cap+=x;S.rent+=l.r;S.news="Открыта новая точка: "+l.n.toLowerCase()+".";S.sp=S.news}render();return}
+_A4(k,v)};
+home();
+</script>
+</body>
+</html>
